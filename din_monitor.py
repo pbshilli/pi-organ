@@ -28,11 +28,13 @@ def tick():
     time.sleep(0.00001)
 
 while True:
-    start()
-    for bit in range(32):
-        tick()
-        print gpio.input(DIN_DATA),
+    for spinner in ('\\', '|', '/', '-',):
+        value=0 
+        start()
+        for bit in range(32):
+            value |= gpio.input(DIN_DATA) << bit
+            tick()
 
-    print
-    time.sleep(0.1)
+        print spinner, bin(value)
+        time.sleep(0.1)
 
