@@ -8,12 +8,14 @@ console.  Plans are to use the following:
 
 * MIDIBox DIN modules for digital input
 ** Note: Based on the 74HC165 shift register
+* Adafruit ADS1115 ADC for analog input
 * Raspberri Pi and Python for main processing
-* MIDI Output (method TBD)
+* RTP-MIDI Output
 
 ## Status
 
-Proof-of-concept: din-monitor.py can successfully read 1 DIN module
+Proof-of-concept: pedal\_board.py can read in a 3-manual console's worth of
+digital inputs and generate MIDI messages accordingly
 
 ## Ideas for other features later
 
