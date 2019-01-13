@@ -20,6 +20,7 @@ Special terms used in this file:
 '''
 
 import socket
+import serial
 import struct
 import time
 from RPi import GPIO
@@ -116,70 +117,6 @@ class OrganNote(object):
 # DIN boards per bank, so split up the banks accordingly
 
 BANK_0_PINS = (
-        None,                     # Chip 0 D0
-        None,
-        None,
-        OrganNote('solo', 'C7'),
-        OrganNote('solo', 'B6'),
-        OrganNote('solo', 'Bb6'),
-        OrganNote('solo', 'A6'),
-        OrganNote('solo', 'Ab6'), # Chip 0 D7
-        OrganNote('solo', 'G6'),  # Chip 1 D0
-        OrganNote('solo', 'Gb6'),
-        OrganNote('solo', 'F6'),
-        OrganNote('solo', 'E6'),
-        OrganNote('solo', 'Eb6'),
-        OrganNote('solo', 'D6'),
-        OrganNote('solo', 'Db6'),
-        OrganNote('solo', 'C6'),  # Chip 1 D0
-        OrganNote('solo', 'B5'),  # Chip 2 D7
-        OrganNote('solo', 'Bb5'),
-        OrganNote('solo', 'A5'),
-        OrganNote('solo', 'Ab5'),
-        OrganNote('solo', 'G5'),
-        OrganNote('solo', 'Gb5'),
-        OrganNote('solo', 'F5'),
-        OrganNote('solo', 'E5'),  # Chip 2 D0
-        OrganNote('solo', 'Eb5'), # Chip 3 D7
-        OrganNote('solo', 'D5'),
-        OrganNote('solo', 'Db5'),
-        OrganNote('solo', 'C5'),
-        OrganNote('solo', 'B4'),
-        OrganNote('solo', 'Bb4'),
-        OrganNote('solo', 'A4'),
-        OrganNote('solo', 'Ab4'), # Chip 3 D0
-        OrganNote('solo', 'G4'),  # Chip 4 D7
-        OrganNote('solo', 'Gb4'),
-        OrganNote('solo', 'F4'),
-        OrganNote('solo', 'E4'),
-        OrganNote('solo', 'Eb4'),
-        OrganNote('solo', 'D4'),
-        OrganNote('solo', 'Db4'),
-        OrganNote('solo', 'C4'),  # Chip 4 D0
-        OrganNote('solo', 'B3'),  # Chip 5 D7
-        OrganNote('solo', 'Bb3'),
-        OrganNote('solo', 'A3'),
-        OrganNote('solo', 'Ab3'),
-        OrganNote('solo', 'G3'),
-        OrganNote('solo', 'Gb3'),
-        OrganNote('solo', 'F3'),
-        OrganNote('solo', 'E3'),  # Chip 5 D0
-        OrganNote('solo', 'Eb3'), # Chip 6 D7
-        OrganNote('solo', 'D3'),
-        OrganNote('solo', 'Db3'),
-        OrganNote('solo', 'C3'),
-        OrganNote('solo', 'B2'),
-        OrganNote('solo', 'Bb2'),
-        OrganNote('solo', 'A2'),
-        OrganNote('solo', 'Ab2'), # Chip 6 D0
-        OrganNote('solo', 'G2'),  # Chip 7 D7
-        OrganNote('solo', 'Gb2'),
-        OrganNote('solo', 'F2'),
-        OrganNote('solo', 'E2'),
-        OrganNote('solo', 'Eb2'),
-        OrganNote('solo', 'D2'),
-        OrganNote('solo', 'Db2'),
-        OrganNote('solo', 'C2'),  # Chip 7 D0
         None,                     # Chip 8 D0
         None,
         None,
@@ -246,71 +183,7 @@ BANK_0_PINS = (
         OrganNote('great', 'C2'),  # Chip 15 D0
         )
 
-BANK_1_PINS = (
-        None,                     # Chip 0 D0
-        None,
-        None,
-        OrganNote('accomp', 'C7'),
-        OrganNote('accomp', 'B6'),
-        OrganNote('accomp', 'Bb6'),
-        OrganNote('accomp', 'A6'),
-        OrganNote('accomp', 'Ab6'), # Chip 0 D7
-        OrganNote('accomp', 'G6'),  # Chip 1 D0
-        OrganNote('accomp', 'Gb6'),
-        OrganNote('accomp', 'F6'),
-        OrganNote('accomp', 'E6'),
-        OrganNote('accomp', 'Eb6'),
-        OrganNote('accomp', 'D6'),
-        OrganNote('accomp', 'Db6'),
-        OrganNote('accomp', 'C6'),  # Chip 1 D0
-        OrganNote('accomp', 'B5'),  # Chip 2 D7
-        OrganNote('accomp', 'Bb5'),
-        OrganNote('accomp', 'A5'),
-        OrganNote('accomp', 'Ab5'),
-        OrganNote('accomp', 'G5'),
-        OrganNote('accomp', 'Gb5'),
-        OrganNote('accomp', 'F5'),
-        OrganNote('accomp', 'E5'),  # Chip 2 D0
-        OrganNote('accomp', 'Eb5'), # Chip 3 D7
-        OrganNote('accomp', 'D5'),
-        OrganNote('accomp', 'Db5'),
-        OrganNote('accomp', 'C5'),
-        OrganNote('accomp', 'B4'),
-        OrganNote('accomp', 'Bb4'),
-        OrganNote('accomp', 'A4'),
-        OrganNote('accomp', 'Ab4'), # Chip 3 D0
-        OrganNote('accomp', 'G4'),  # Chip 4 D7
-        OrganNote('accomp', 'Gb4'),
-        OrganNote('accomp', 'F4'),
-        OrganNote('accomp', 'E4'),
-        OrganNote('accomp', 'Eb4'),
-        OrganNote('accomp', 'D4'),
-        OrganNote('accomp', 'Db4'),
-        OrganNote('accomp', 'C4'),  # Chip 4 D0
-        OrganNote('accomp', 'B3'),  # Chip 5 D7
-        OrganNote('accomp', 'Bb3'),
-        OrganNote('accomp', 'A3'),
-        OrganNote('accomp', 'Ab3'),
-        OrganNote('accomp', 'G3'),
-        OrganNote('accomp', 'Gb3'),
-        OrganNote('accomp', 'F3'),
-        OrganNote('accomp', 'E3'),  # Chip 5 D0
-        OrganNote('accomp', 'Eb3'), # Chip 6 D7
-        OrganNote('accomp', 'D3'),
-        OrganNote('accomp', 'Db3'),
-        OrganNote('accomp', 'C3'),
-        OrganNote('accomp', 'B2'),
-        OrganNote('accomp', 'Bb2'),
-        OrganNote('accomp', 'A2'),
-        OrganNote('accomp', 'Ab2'), # Chip 6 D0
-        OrganNote('accomp', 'G2'),  # Chip 7 D7
-        OrganNote('accomp', 'Gb2'),
-        OrganNote('accomp', 'F2'),
-        OrganNote('accomp', 'E2'),
-        OrganNote('accomp', 'Eb2'),
-        OrganNote('accomp', 'D2'),
-        OrganNote('accomp', 'Db2'),
-        OrganNote('accomp', 'C2'),  # Chip 7 D0
+BANK_PEDAL_PINS = (
         OrganNote('pedal', 'G4'), # Chip 8 D7
         OrganNote('pedal', 'Gb4'),
         OrganNote('pedal', 'F4'),
@@ -349,14 +222,15 @@ BANK_1_PINS = (
 # SI, respectively
 
 BANKS_74HC165 = {
-        'solo_great': (19, 21, 23, BANK_0_PINS),
-        'accomp_pedal': (37, 38, 40, BANK_1_PINS),
+        'great': (19, 21, 23, BANK_0_PINS),
+        #'solo': (37, 38, 40, BANK_1_PINS),
         }
+
 
 pin_states = {}
 for bank, (pin_load, pin_clock, pin_data, pins) in BANKS_74HC165.items():
     # Initialize all pins to "open"
-    pin_states[bank] = [ 1 ] * len( pins )
+    pin_states[bank] = [1] * len(pins)
 
     # Initialize GPIO pins
     GPIO.setup(pin_load, GPIO.OUT)
@@ -365,11 +239,15 @@ for bank, (pin_load, pin_clock, pin_data, pins) in BANKS_74HC165.items():
     GPIO.output(pin_clock, GPIO.LOW)
     GPIO.setup(pin_data, GPIO.IN)
 
-# TODO: Zip the bank processing together since the longest operations, the GPIO
-# functions, can be done in parallel for each bank.  The banks currently defined
-# can all be processed in about 3ms, so it's good enough for now
+pedal_board = serial.Serial('/dev/ttyACM0', timeout=0)
+pin_states['pedal'] = [1] * len(BANK_PEDAL_PINS)
+pedal_state_new = 0xFFFF
+
 try:
     while True:
+        # TODO: Zip the bank processing together since the longest operations, the GPIO
+        # functions, can be done in parallel for each bank.  The banks currently defined can
+        # all be processed in about 3ms, so it's good enough for now
         for bank, (pin_load, pin_clock, pin_data, pins) in BANKS_74HC165.items():
             gpio_load(pin_load)
             for pin_idx, pin in enumerate(pins):
@@ -380,6 +258,25 @@ try:
                         pin.state_change(time.time(), state_new)
                 gpio_tick(pin_clock)
 
+        # Get the most recent pedal board state
+        new_data = pedal_board.readlines()
+        try:
+            newest_data = new_data[-1]
+        except:
+            newest_data = []
+
+        # If the newset data is valid, process it
+        # Length = 8 hex digits + CR + LF = 6
+        if len(newest_data) == 10:
+            # Process pedal board pins
+            pedal_state_new = int(newest_data[:8], 16)
+            for pin_idx, pin in enumerate(BANK_PEDAL_PINS):
+                state_new = (pedal_state_new >> pin_idx) & 1
+                if state_new != pin_states['pedal'][pin_idx]:
+                    pin_states['pedal'][pin_idx] = state_new
+                    if pin is not None:
+                        pin.state_change(time.time(), state_new)
+
 except KeyboardInterrupt:
     print "Exit Signal Received"
 
@@ -387,4 +284,5 @@ finally:
     print "Cleaning up...",
     GPIO.cleanup()
     s.close()
+    pedal_board.close()
     print "Done"

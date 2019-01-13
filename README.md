@@ -8,14 +8,27 @@ console.  Plans are to use the following:
 
 * MIDIBox DIN modules for digital input
 ** Note: Based on the 74HC165 shift register
-* Adafruit ADS1115 ADC for analog input
 * Raspberri Pi and Python for main processing
+* Arduino Leonardo for pedal board processing
+** This is required since the pedal board is physically separate from
+   the rest of the console.  The Arduino connects to the Raspberry Pi
+   via USB.
 * RTP-MIDI Output
 
 ## Status
 
 Proof-of-concept: pedal\_board.py can read in a 3-manual console's worth of
 digital inputs and generate MIDI messages accordingly
+
+## Development on the raspberry pi
+
+### Arduino development
+
+Arduino development on the pi is done by installing the "Linux ARM"
+version of the Arduino IDE as per https://www.arduino.cc/en/Main/Software.
+
+Command to build and load the pedal board Arduino Leonardo sketch file:
+`~/path/to/arduino --upload --board arduino:avr:leonardo --port /dev/ttyACM0 pedal\_board.ino`
 
 ## Ideas for other features later
 

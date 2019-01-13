@@ -13,7 +13,8 @@ void setup() {
 }
 
 void loop() {
-    unsigned int bit_value, value;
+    unsigned long bit_value;
+    unsigned long value;
     
     digitalWrite(PIN_DIN_CLOCK, HIGH);
     digitalWrite(PIN_DIN_LOAD, LOW);
@@ -36,5 +37,4 @@ void loop() {
     
     Serial.print(value, HEX);
     Serial.print("\r\n");
-    delay(1);
 }
