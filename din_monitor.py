@@ -3,9 +3,9 @@
 import RPi.GPIO as gpio
 import time
 
-DIN_LOAD = 24
-DIN_CLK = 23
-DIN_DATA = 26
+DIN_LOAD = 23
+DIN_CLK = 21
+DIN_DATA = 19
 
 gpio.setmode(gpio.BOARD)
 
@@ -31,7 +31,7 @@ while True:
     for spinner in ('\\', '|', '/', '-',):
         value=0 
         start()
-        for bit in range(32):
+        for bit in range(64):
             value |= gpio.input(DIN_DATA) << bit
             tick()
 

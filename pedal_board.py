@@ -54,16 +54,16 @@ def midi_note_get(note):
 def gpio_load(pin_load):
     '''Trigger the load pin on a bank of 74HC165 registers'''
     GPIO.output(pin_load, GPIO.LOW)
-    time.sleep(0.000001)
+    time.sleep(0.000005)
     GPIO.output(pin_load, GPIO.HIGH)
-    time.sleep(0.000001)
+    time.sleep(0.000005)
 
 def gpio_tick(pin_clock):
     '''Cycle the clock pin on a bank of 74HC165 registers'''
     GPIO.output(pin_clock, GPIO.HIGH)
-    time.sleep(0.0000001)
+    time.sleep(0.000005)
     GPIO.output(pin_clock, GPIO.LOW)
-    time.sleep(0.0000001)
+    time.sleep(0.000005)
 
 # RTP-MIDI port as defined by raveloxmidi
 RTP_MIDI_PORT = 5006
@@ -83,6 +83,11 @@ def midi_note_on(channel, midi_note):
 def midi_note_off(channel, midi_note):
     '''Transmit a MIDI "note off" message'''
     pkt_midi = struct.pack("BBBB", 0xaa, 0x80 | channel, midi_note, 0x7f)
+    s.send(pkt_midi)
+
+def midi_control_change(channel, control, value):
+    '''Transmit a MIDI "note off" message'''
+    pkt_midi = struct.pack("BBBB", 0xaa, 0xb0 | channel, control, value)
     s.send(pkt_midi)
 
 class OrganNote(object):
@@ -112,6 +117,35 @@ class OrganNote(object):
         else:
             print "[{}] NOTE OFF: {} {}".format(timestamp, self.division, self.note)
             midi_note_off(midi_channel, midi_note)
+
+class OrganShoe(object):
+    '''
+    Object used to register a pi-organ swell shoe for processing
+
+    Currently the only option for pi-organ notes is to transmit a MIDI volume
+    control message on state change, so that action is hard-coded below
+    '''
+    def __init__(self, name, channel):
+        self.name = name
+        self.channel = channel
+        self.value = None
+
+    def update(self, timestamp, value_new):
+        '''Process a swell shoe state update event'''
+
+        scaled_value = value_new >> 1
+        assert 0 <= scaled_value < 128
+
+        # Just save the value on the first update
+        if self.value is None:
+            self.value = scaled_value
+            return
+
+        # Send a volume message on change
+        if scaled_value != self.value:
+            self.value = scaled_value
+            print "[{}] VOLUME: {} {}".format(timestamp, self.name, self.value)
+            midi_control_change(self.channel, 7, self.value)
 
 # Through some testing, it was found that the RPi can't drive more than about 4
 # DIN boards per bank, so split up the banks accordingly
@@ -218,11 +252,17 @@ BANK_PEDAL_PINS = (
         OrganNote('pedal', 'C2'),  # Chip 11 D0
     )
 
+SWELL_SHOES = (
+        OrganShoe('Great', 1),      # Arduino A0
+        OrganShoe('Swell', 2),      # Arduino A1
+        OrganShoe('Crescendo', 3),  # Arduino A2
+    )
+
 # On a MIDIBox DIN board, the load, clock, and data pins are marked RC, SC, and
 # SI, respectively
 
 BANKS_74HC165 = {
-        'great': (19, 21, 23, BANK_0_PINS),
+        'great': (23, 21, 19, BANK_0_PINS),
         #'solo': (37, 38, 40, BANK_1_PINS),
         }
 
@@ -262,20 +302,25 @@ try:
         new_data = pedal_board.readlines()
         try:
             newest_data = new_data[-1]
+            (pedals, shoe_0, shoe_1, shoe_2) = newest_data.split(",")
+            pedal_state_new = int(pedals, 16)
+            shoe_state_new = (int(shoe_0, 16), int(shoe_1, 16), int(shoe_2, 16))
         except:
-            newest_data = []
+            pass
 
         # If the newset data is valid, process it
-        # Length = 8 hex digits + CR + LF = 6
-        if len(newest_data) == 10:
+        else:
             # Process pedal board pins
-            pedal_state_new = int(newest_data[:8], 16)
             for pin_idx, pin in enumerate(BANK_PEDAL_PINS):
                 state_new = (pedal_state_new >> pin_idx) & 1
                 if state_new != pin_states['pedal'][pin_idx]:
                     pin_states['pedal'][pin_idx] = state_new
                     if pin is not None:
                         pin.state_change(time.time(), state_new)
+
+            # Process swell shoes
+            for shoe_idx, shoe in enumerate(SWELL_SHOES):
+                shoe.update(time.time(), shoe_state_new[shoe_idx])
 
 except KeyboardInterrupt:
     print "Exit Signal Received"
