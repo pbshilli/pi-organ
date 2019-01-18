@@ -24,8 +24,9 @@ import serial
 import struct
 import time
 from RPi import GPIO
+import jack
 
-PI_ORGAN_DIVISIONS = ['pedal', 'accomp', 'great', 'solo']
+PI_ORGAN_DIVISIONS = {'pedal': 0, 'accomp': 1, 'great':2, 'solo':3}
 
 PI_ORGAN_NOTES = [ 'C2', 'Db2', 'D2', 'Eb2',
         'E2', 'F2', 'Gb2', 'G2', 'Ab2', 'A2',
@@ -41,7 +42,7 @@ PI_ORGAN_NOTES = [ 'C2', 'Db2', 'D2', 'Eb2',
 
 def midi_channel_get(division):
     '''Get the MIDI channel associated with the pi-organ division'''
-    return PI_ORGAN_DIVISIONS.index(division)
+    return PI_ORGAN_DIVISIONS[division]
 
 def midi_note_get(note):
     '''Get the MIDI note value associated with the pi-organ note'''
@@ -68,27 +69,26 @@ def gpio_tick(pin_clock):
 # RTP-MIDI port as defined by raveloxmidi
 RTP_MIDI_PORT = 5006
 
-# Open the connection to raveloxmidi
-s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-s.connect(("localhost", RTP_MIDI_PORT))
+# Open the connection to jack-midi
+client = jack.Client('Pi-Organ')
+outport = client.midi_outports.register('output')
+client.activate()
+client.connect(outport, 'system:playback_1')
 
 # Set up the GPIO board
 GPIO.setmode(GPIO.BOARD)
 
 def midi_note_on(channel, midi_note):
     '''Transmit a MIDI "note on" message'''
-    pkt_midi = struct.pack("BBBB", 0xaa, 0x90 | channel, midi_note, 0x7f)
-    s.send(pkt_midi)
+    outport.write_midi_event(0, (0x90 | channel, midi_note, 127))
 
 def midi_note_off(channel, midi_note):
     '''Transmit a MIDI "note off" message'''
-    pkt_midi = struct.pack("BBBB", 0xaa, 0x80 | channel, midi_note, 0x7f)
-    s.send(pkt_midi)
+    outport.write_midi_event(0, (0x80 | channel, midi_note, 0))
 
 def midi_control_change(channel, control, value):
     '''Transmit a MIDI "note off" message'''
-    pkt_midi = struct.pack("BBBB", 0xaa, 0xb0 | channel, control, value)
-    s.send(pkt_midi)
+    outport.write_midi_event(0, (0xb0 | channel, control, value))
 
 class OrganNote(object):
     '''
@@ -110,12 +110,12 @@ class OrganNote(object):
 
         # A grounded pin is defined as "note on"
         if state_new == 0:
-            print "[{}] NOTE ON: {} {}".format(timestamp, self.division, self.note)
+            print("[{}] NOTE ON: {} {}".format(timestamp, self.division, self.note))
             midi_note_on(midi_channel, midi_note)
 
         # An open pin is defined as "note off"
         else:
-            print "[{}] NOTE OFF: {} {}".format(timestamp, self.division, self.note)
+            print("[{}] NOTE OFF: {} {}".format(timestamp, self.division, self.note))
             midi_note_off(midi_channel, midi_note)
 
 class OrganShoe(object):
@@ -285,6 +285,7 @@ pedal_state_new = 0xFFFF
 
 try:
     while True:
+        outport.clear_buffer()
         # TODO: Zip the bank processing together since the longest operations, the GPIO
         # functions, can be done in parallel for each bank.  The banks currently defined can
         # all be processed in about 3ms, so it's good enough for now
@@ -301,7 +302,7 @@ try:
         # Get the most recent pedal board state
         new_data = pedal_board.readlines()
         try:
-            newest_data = new_data[-1]
+            newest_data = new_data[-1].decode().rstrip()
             (pedals, shoe_0, shoe_1, shoe_2) = newest_data.split(",")
             pedal_state_new = int(pedals, 16)
             shoe_state_new = (int(shoe_0, 16), int(shoe_1, 16), int(shoe_2, 16))
@@ -323,11 +324,12 @@ try:
                 shoe.update(time.time(), shoe_state_new[shoe_idx])
 
 except KeyboardInterrupt:
-    print "Exit Signal Received"
+    print("Exit Signal Received")
 
 finally:
-    print "Cleaning up...",
+    print("Cleaning up..."),
     GPIO.cleanup()
-    s.close()
+    client.disconnect(outport, 'system:playback_1')
+    client.deactivate()
     pedal_board.close()
-    print "Done"
+    print("Done")
