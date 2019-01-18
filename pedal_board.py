@@ -144,77 +144,77 @@ class OrganShoe(object):
         # Send a volume message on change
         if scaled_value != self.value:
             self.value = scaled_value
-            print "[{}] VOLUME: {} {}".format(timestamp, self.name, self.value)
+            print("[{}] VOLUME: {} {}".format(timestamp, self.name, self.value))
             midi_control_change(self.channel, 7, self.value)
 
 # Through some testing, it was found that the RPi can't drive more than about 4
 # DIN boards per bank, so split up the banks accordingly
 
 BANK_0_PINS = (
+        OrganNote('great', 'C2'),  # Chip 15 D0
+        OrganNote('great', 'Db2'),
+        OrganNote('great', 'D2'),
+        OrganNote('great', 'Eb2'),
+        OrganNote('great', 'E2'),
+        OrganNote('great', 'F2'),
+        OrganNote('great', 'Gb2'),
+        OrganNote('great', 'G2'),  # Chip 15 D7
+        OrganNote('great', 'Ab2'), # Chip 14 D0
+        OrganNote('great', 'A2'),
+        OrganNote('great', 'Bb2'),
+        OrganNote('great', 'B2'),
+        OrganNote('great', 'C3'),
+        OrganNote('great', 'Db3'),
+        OrganNote('great', 'D3'),
+        OrganNote('great', 'Eb3'), # Chip 14 D7
+        OrganNote('great', 'E3'),  # Chip 13 D0
+        OrganNote('great', 'F3'),
+        OrganNote('great', 'Gb3'),
+        OrganNote('great', 'G3'),
+        OrganNote('great', 'Ab3'),
+        OrganNote('great', 'A3'),
+        OrganNote('great', 'Bb3'),
+        OrganNote('great', 'B3'),  # Chip 13 D7
+        OrganNote('great', 'C4'),  # Chip 12 D0
+        OrganNote('great', 'Db4'),
+        OrganNote('great', 'D4'),
+        OrganNote('great', 'Eb4'),
+        OrganNote('great', 'E4'),
+        OrganNote('great', 'F4'),
+        OrganNote('great', 'Gb4'),
+        OrganNote('great', 'G4'),  # Chip 12 D7
+        OrganNote('great', 'Ab4'), # Chip 11 D0
+        OrganNote('great', 'A4'),
+        OrganNote('great', 'Bb4'),
+        OrganNote('great', 'B4'),
+        OrganNote('great', 'C5'),
+        OrganNote('great', 'Db5'),
+        OrganNote('great', 'D5'),
+        OrganNote('great', 'Eb5'), # Chip 11 D7
+        OrganNote('great', 'E5'),  # Chip 10 D0
+        OrganNote('great', 'F5'),
+        OrganNote('great', 'Gb5'),
+        OrganNote('great', 'G5'),
+        OrganNote('great', 'Ab5'),
+        OrganNote('great', 'A5'),
+        OrganNote('great', 'Bb5'),
+        OrganNote('great', 'B5'),  # Chip 10 D7
+        OrganNote('great', 'C6'),  # Chip 9 D0
+        OrganNote('great', 'Db6'),
+        OrganNote('great', 'D6'),
+        OrganNote('great', 'Eb6'),
+        OrganNote('great', 'E6'),
+        OrganNote('great', 'F6'),
+        OrganNote('great', 'Gb6'),
+        OrganNote('great', 'G6'),  # Chip 9 D0
+        OrganNote('great', 'Ab6'), # Chip 8 D7
+        OrganNote('great', 'A6'),
+        OrganNote('great', 'Bb6'),
+        OrganNote('great', 'B6'),
+        OrganNote('great', 'C7'),
         None,                     # Chip 8 D0
         None,
         None,
-        OrganNote('great', 'C7'),
-        OrganNote('great', 'B6'),
-        OrganNote('great', 'Bb6'),
-        OrganNote('great', 'A6'),
-        OrganNote('great', 'Ab6'), # Chip 8 D7
-        OrganNote('great', 'G6'),  # Chip 9 D0
-        OrganNote('great', 'Gb6'),
-        OrganNote('great', 'F6'),
-        OrganNote('great', 'E6'),
-        OrganNote('great', 'Eb6'),
-        OrganNote('great', 'D6'),
-        OrganNote('great', 'Db6'),
-        OrganNote('great', 'C6'),  # Chip 9 D0
-        OrganNote('great', 'B5'),  # Chip 10 D7
-        OrganNote('great', 'Bb5'),
-        OrganNote('great', 'A5'),
-        OrganNote('great', 'Ab5'),
-        OrganNote('great', 'G5'),
-        OrganNote('great', 'Gb5'),
-        OrganNote('great', 'F5'),
-        OrganNote('great', 'E5'),  # Chip 10 D0
-        OrganNote('great', 'Eb5'), # Chip 11 D7
-        OrganNote('great', 'D5'),
-        OrganNote('great', 'Db5'),
-        OrganNote('great', 'C5'),
-        OrganNote('great', 'B4'),
-        OrganNote('great', 'Bb4'),
-        OrganNote('great', 'A4'),
-        OrganNote('great', 'Ab4'), # Chip 11 D0
-        OrganNote('great', 'G4'),  # Chip 12 D7
-        OrganNote('great', 'Gb4'),
-        OrganNote('great', 'F4'),
-        OrganNote('great', 'E4'),
-        OrganNote('great', 'Eb4'),
-        OrganNote('great', 'D4'),
-        OrganNote('great', 'Db4'),
-        OrganNote('great', 'C4'),  # Chip 12 D0
-        OrganNote('great', 'B3'),  # Chip 13 D7
-        OrganNote('great', 'Bb3'),
-        OrganNote('great', 'A3'),
-        OrganNote('great', 'Ab3'),
-        OrganNote('great', 'G3'),
-        OrganNote('great', 'Gb3'),
-        OrganNote('great', 'F3'),
-        OrganNote('great', 'E3'),  # Chip 13 D0
-        OrganNote('great', 'Eb3'), # Chip 14 D7
-        OrganNote('great', 'D3'),
-        OrganNote('great', 'Db3'),
-        OrganNote('great', 'C3'),
-        OrganNote('great', 'B2'),
-        OrganNote('great', 'Bb2'),
-        OrganNote('great', 'A2'),
-        OrganNote('great', 'Ab2'), # Chip 14 D0
-        OrganNote('great', 'G2'),  # Chip 15 D7
-        OrganNote('great', 'Gb2'),
-        OrganNote('great', 'F2'),
-        OrganNote('great', 'E2'),
-        OrganNote('great', 'Eb2'),
-        OrganNote('great', 'D2'),
-        OrganNote('great', 'Db2'),
-        OrganNote('great', 'C2'),  # Chip 15 D0
         )
 
 BANK_PEDAL_PINS = (
