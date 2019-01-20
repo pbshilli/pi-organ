@@ -23,6 +23,7 @@ import socket
 import serial
 import struct
 import time
+import queue
 from RPi import GPIO
 import jack
 
@@ -72,23 +73,35 @@ RTP_MIDI_PORT = 5006
 # Open the connection to jack-midi
 client = jack.Client('Pi-Organ')
 outport = client.midi_outports.register('output')
+midi_msg_q = queue.Queue()
+
+@client.set_process_callback
+def process(frames):
+    global midi_msg_q
+    outport.clear_buffer()
+    try:
+        while True:
+            midi_msg = midi_msg_q.get(block=False)
+            outport.write_midi_event(0, midi_msg)
+    except queue.Empty:
+        pass
+
 client.activate()
 client.connect(outport, 'system:playback_1')
-
 # Set up the GPIO board
 GPIO.setmode(GPIO.BOARD)
 
 def midi_note_on(channel, midi_note):
     '''Transmit a MIDI "note on" message'''
-    outport.write_midi_event(0, (0x90 | channel, midi_note, 127))
+    midi_msg_q.put((0x90 | channel, midi_note, 127))
 
 def midi_note_off(channel, midi_note):
     '''Transmit a MIDI "note off" message'''
-    outport.write_midi_event(0, (0x80 | channel, midi_note, 0))
+    midi_msg_q.put((0x80 | channel, midi_note, 0))
 
 def midi_control_change(channel, control, value):
     '''Transmit a MIDI "note off" message'''
-    outport.write_midi_event(0, (0xb0 | channel, control, value))
+    midi_msg_q_.put((0xb0 | channel, control, value))
 
 class OrganNote(object):
     '''
@@ -285,7 +298,6 @@ pedal_state_new = 0xFFFF
 
 try:
     while True:
-        outport.clear_buffer()
         # TODO: Zip the bank processing together since the longest operations, the GPIO
         # functions, can be done in parallel for each bank.  The banks currently defined can
         # all be processed in about 3ms, so it's good enough for now
