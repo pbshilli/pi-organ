@@ -300,9 +300,20 @@ try:
                 gpio_tick(pin_clock)
 
         # Get the most recent pedal board state
-        new_data = pedal_board.readlines()
+        # Note: The following algorithm assumes there was time
+        #       to send at least one full message since the last read
+        new_data = pedal_board.read(256)
         try:
-            newest_data = new_data[-1].decode().rstrip()
+            # Find the last CRLF, which indicates the latest end of a full message
+            last_newline = new_data.rfind(b'\r')
+
+            # Find the next CRLF from the end to get the beginning of the last full message
+            second_last_newline = new_data[:last_newline].rfind(b'\n')
+
+            # Extract the last full message
+            newest_data = new_data[second_last_newline+1:last_newline].decode()
+
+            # Parse out the comma-separated hex data
             (pedals, shoe_0, shoe_1, shoe_2) = newest_data.split(",")
             pedal_state_new = int(pedals, 16)
             shoe_state_new = (int(shoe_0, 16), int(shoe_1, 16), int(shoe_2, 16))
