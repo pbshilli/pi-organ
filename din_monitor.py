@@ -29,12 +29,15 @@ def tick():
 
 while True:
     for spinner in ('\\', '|', '/', '-',):
-        value=0 
+        string = spinner
         start()
-        for bit in range(64):
-            value |= gpio.input(DIN_DATA) << bit
+        for _ in range(64):
+            if gpio.input(DIN_DATA):
+                string += '\033[91m1\033[0m'
+            else
+                string += '0'
             tick()
 
-        print spinner, bin(value)
+        print(string)
         time.sleep(0.1)
 
