@@ -93,15 +93,18 @@ GPIO.setmode(GPIO.BOARD)
 
 def midi_note_on(channel, midi_note):
     '''Transmit a MIDI "note on" message'''
+    global midi_msg_q
     midi_msg_q.put((0x90 | channel, midi_note, 127))
 
 def midi_note_off(channel, midi_note):
     '''Transmit a MIDI "note off" message'''
+    global midi_msg_q
     midi_msg_q.put((0x80 | channel, midi_note, 0))
 
 def midi_control_change(channel, control, value):
     '''Transmit a MIDI "note off" message'''
-    midi_msg_q_.put((0xb0 | channel, control, value))
+    global midi_msg_q
+    midi_msg_q.put((0xb0 | channel, control, value))
 
 class OrganNote(object):
     '''
@@ -231,38 +234,38 @@ BANK_0_PINS = (
         )
 
 BANK_PEDAL_PINS = (
-        OrganNote('pedal', 'G4'), # Chip 8 D7
-        OrganNote('pedal', 'Gb4'),
-        OrganNote('pedal', 'F4'),
-        OrganNote('pedal', 'E4'),
-        OrganNote('pedal', 'Eb4'),
-        OrganNote('pedal', 'D4'),
-        OrganNote('pedal', 'Db4'),
-        OrganNote('pedal', 'C4'),  # Chip 8 D0
-        OrganNote('pedal', 'B3'),  # Chip 9 D7
-        OrganNote('pedal', 'Bb3'),
-        OrganNote('pedal', 'A3'),
-        OrganNote('pedal', 'Ab3'),
-        OrganNote('pedal', 'G3'),
-        OrganNote('pedal', 'Gb3'),
-        OrganNote('pedal', 'F3'),
-        OrganNote('pedal', 'E3'),  # Chip 9 D0
-        OrganNote('pedal', 'Eb3'), # Chip 10 D7
-        OrganNote('pedal', 'D3'),
-        OrganNote('pedal', 'Db3'),
-        OrganNote('pedal', 'C3'),
-        OrganNote('pedal', 'B2'),
-        OrganNote('pedal', 'Bb2'),
-        OrganNote('pedal', 'A2'),
-        OrganNote('pedal', 'Ab2'), # Chip 10 D0
-        OrganNote('pedal', 'G2'),  # Chip 11 D7
-        OrganNote('pedal', 'Gb2'),
-        OrganNote('pedal', 'F2'),
-        OrganNote('pedal', 'E2'),
-        OrganNote('pedal', 'Eb2'),
-        OrganNote('pedal', 'D2'),
-        OrganNote('pedal', 'Db2'),
         OrganNote('pedal', 'C2'),  # Chip 11 D0
+        OrganNote('pedal', 'Db2'),
+        OrganNote('pedal', 'D2'),
+        OrganNote('pedal', 'Eb2'),
+        OrganNote('pedal', 'E2'),
+        OrganNote('pedal', 'F2'),
+        OrganNote('pedal', 'Gb2'),
+        OrganNote('pedal', 'G2'),  # Chip 11 D7
+        OrganNote('pedal', 'Ab2'), # Chip 10 D0
+        OrganNote('pedal', 'A2'),
+        OrganNote('pedal', 'Bb2'),
+        OrganNote('pedal', 'B2'),
+        OrganNote('pedal', 'C3'),
+        OrganNote('pedal', 'Db3'),
+        OrganNote('pedal', 'D3'),
+        OrganNote('pedal', 'Eb3'), # Chip 10 D7
+        OrganNote('pedal', 'E3'),  # Chip 9 D0
+        OrganNote('pedal', 'F3'),
+        OrganNote('pedal', 'Gb3'),
+        OrganNote('pedal', 'G3'),
+        OrganNote('pedal', 'Ab3'),
+        OrganNote('pedal', 'A3'),
+        OrganNote('pedal', 'Bb3'),
+        OrganNote('pedal', 'B3'),  # Chip 9 D7
+        OrganNote('pedal', 'C4'),  # Chip 8 D0
+        OrganNote('pedal', 'Db4'),
+        OrganNote('pedal', 'D4'),
+        OrganNote('pedal', 'Eb4'),
+        OrganNote('pedal', 'E4'),
+        OrganNote('pedal', 'F4'),
+        OrganNote('pedal', 'Gb4'),
+        OrganNote('pedal', 'G4'), # Chip 8 D7
     )
 
 SWELL_SHOES = (
@@ -294,7 +297,6 @@ for bank, (pin_load, pin_clock, pin_data, pins) in BANKS_74HC165.items():
 
 pedal_board = serial.Serial('/dev/ttyACM0', timeout=0)
 pin_states['pedal'] = [1] * len(BANK_PEDAL_PINS)
-pedal_state_new = 0xFFFF
 
 try:
     while True:
