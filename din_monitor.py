@@ -33,9 +33,9 @@ while True:
         start()
         for _ in range(64):
             if gpio.input(DIN_DATA):
-                string += '\033[91m1\033[0m'
-            else
-                string += '0'
+                string += '1'
+            else:
+                string += '\033[93m0\033[0m'
             tick()
 
         print(string)
