@@ -51,12 +51,13 @@ This will be needed later for setting up NetJack1
 
 ### On the jOrgan computer, start the NetJack1 master
 
-`jack_netsource -i 0 -o 0 -O 0 -H ip.addr.of.pi`
+`jack_netsource -n 1 -i 0 -o 0 -O 0 -H ip.addr.of.pi`
 
 Both slave and master should auto-connect at this point
 
 Notes:
 * Add `-R n` to add retries if not all MIDI messages are getting through
+* `-n 1` minimizes the connection latency
 * `ip.addr.of.pi` must be the wired Ethernet address from the previous step
 * `-i 0 -o 0 -O 0` shuts off the default audio ports and MIDI input port
   normally created by NetJack1 to minimize wasted bandwidth
