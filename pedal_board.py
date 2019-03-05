@@ -23,7 +23,7 @@ import socket
 import serial
 import struct
 import time
-import queue
+import collections
 from RPi import GPIO
 import jack
 
@@ -56,16 +56,12 @@ def midi_note_get(note):
 def gpio_load(pin_load):
     '''Trigger the load pin on a bank of 74HC165 registers'''
     GPIO.output(pin_load, GPIO.LOW)
-    time.sleep(0.000005)
     GPIO.output(pin_load, GPIO.HIGH)
-    time.sleep(0.000005)
 
 def gpio_tick(pin_clock):
     '''Cycle the clock pin on a bank of 74HC165 registers'''
     GPIO.output(pin_clock, GPIO.HIGH)
-    time.sleep(0.000005)
     GPIO.output(pin_clock, GPIO.LOW)
-    time.sleep(0.000005)
 
 # RTP-MIDI port as defined by raveloxmidi
 RTP_MIDI_PORT = 5006
@@ -73,18 +69,30 @@ RTP_MIDI_PORT = 5006
 # Open the connection to jack-midi
 client = jack.Client('Pi-Organ')
 outport = client.midi_outports.register('output')
-midi_msg_q = queue.Queue()
+midi_msg_q = collections.deque()
+print(client.blocksize, client.samplerate)
 
 @client.set_process_callback
 def process(frames):
     global midi_msg_q
     outport.clear_buffer()
-    try:
-        while True:
-            midi_msg = midi_msg_q.get(block=False)
-            outport.write_midi_event(0, midi_msg)
-    except queue.Empty:
-        pass
+    while midi_msg_q:
+        # Peek at the next item
+        (frame_time, midi_msg) = midi_msg_q[0]
+        
+        # Set up offsets into the next frame that match the
+        # MIDI offsets in the previous frame
+        offset = frame_time - client.last_frame_time + frames
+
+        # If this block has been exceeded, keep the message
+        # on the queue for the next block
+        if offset >= frames:
+            break
+
+        # The offset is in this block, so write the event and
+        # pop it off the queue
+        outport.write_midi_event(offset, midi_msg)
+        midi_msg_q.popleft()
 
 client.activate()
 client.connect(outport, 'system:playback_1')
@@ -94,17 +102,17 @@ GPIO.setmode(GPIO.BOARD)
 def midi_note_on(channel, midi_note):
     '''Transmit a MIDI "note on" message'''
     global midi_msg_q
-    midi_msg_q.put((0x90 | channel, midi_note, 127))
+    midi_msg_q.append((client.frame_time, (0x90 | channel, midi_note, 127)))
 
 def midi_note_off(channel, midi_note):
     '''Transmit a MIDI "note off" message'''
     global midi_msg_q
-    midi_msg_q.put((0x80 | channel, midi_note, 0))
+    midi_msg_q.append((client.frame_time, (0x80 | channel, midi_note, 0)))
 
 def midi_control_change(channel, control, value):
     '''Transmit a MIDI "note off" message'''
     global midi_msg_q
-    midi_msg_q.put((0xb0 | channel, control, value))
+    midi_msg_q.append((client.frame_time, (0xb0 | channel, control, value)))
 
 class OrganNote(object):
     '''
@@ -126,12 +134,12 @@ class OrganNote(object):
 
         # A grounded pin is defined as "note on"
         if state_new == 0:
-            print("[{}] NOTE ON: {} {}".format(timestamp, self.division, self.note))
+            #print("[{}] NOTE ON: {} {}".format(timestamp, self.division, self.note))
             midi_note_on(midi_channel, midi_note)
 
         # An open pin is defined as "note off"
         else:
-            print("[{}] NOTE OFF: {} {}".format(timestamp, self.division, self.note))
+            #print("[{}] NOTE OFF: {} {}".format(timestamp, self.division, self.note))
             midi_note_off(midi_channel, midi_note)
 
 class OrganShoe(object):
@@ -160,7 +168,7 @@ class OrganShoe(object):
         # Send a volume message on change
         if scaled_value != self.value:
             self.value = scaled_value
-            print("[{}] VOLUME: {} {}".format(timestamp, self.name, self.value))
+            #print("[{}] VOLUME: {} {}".format(timestamp, self.name, self.value))
             midi_control_change(self.channel, 7, self.value)
 
 # Through some testing, it was found that the RPi can't drive more than about 4
@@ -347,6 +355,8 @@ try:
             # Process swell shoes
             for shoe_idx, shoe in enumerate(SWELL_SHOES):
                 shoe.update(time.time(), shoe_state_new[shoe_idx])
+        
+        time.sleep(0.000001)
 
 except KeyboardInterrupt:
     print("Exit Signal Received")
