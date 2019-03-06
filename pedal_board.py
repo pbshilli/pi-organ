@@ -76,13 +76,24 @@ print(client.blocksize, client.samplerate)
 def process(frames):
     global midi_msg_q
     outport.clear_buffer()
+
+    # Assume that the queue was last emptied at the last
+    # process cycle
+    frame_0 = client.last_frame_time - frames
+
     while midi_msg_q:
         # Peek at the next item
         (frame_time, midi_msg) = midi_msg_q[0]
         
-        # Set up offsets into the next frame that match the
-        # MIDI offsets in the previous frame
-        offset = frame_time - client.last_frame_time + frames
+        # Find the offset
+        offset = frame_time - frame_0
+
+        # If the offset occurred in the past, this process cycle
+        # is late, so fix frame_0 to preserve causality
+        if offset < 0:
+            print(-offset)
+            frame_0 = frame_time - offset
+            offset = 0
 
         # If this block has been exceeded, keep the message
         # on the queue for the next block
