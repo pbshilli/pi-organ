@@ -301,11 +301,14 @@ BANKS_74HC165 = {
         #'solo': (37, 38, 40, BANK_1_PINS),
         }
 
+PIN_DEBOUNCE = 2
 
 pin_states = {}
+pin_debounce = {}
 for bank, (pin_load, pin_clock, pin_data, pins) in BANKS_74HC165.items():
     # Initialize all pins to "open"
     pin_states[bank] = [1] * len(pins)
+    pin_debounce[bank] = [0] * len(pins)
 
     # Initialize GPIO pins
     GPIO.setup(pin_load, GPIO.OUT)
@@ -327,9 +330,14 @@ try:
             for pin_idx, pin in enumerate(pins):
                 state_new = GPIO.input(pin_data)
                 if state_new != pin_states[bank][pin_idx]:
-                    pin_states[bank][pin_idx] = state_new
-                    if pin is not None:
-                        pin.state_change(time.time(), state_new)
+                    pin_debounce[bank][pin_idx] += 1
+                    if pin_debounce[bank][pin_idx] == PIN_DEBOUNCE:
+                        pin_debounce[bank][pin_idx] = 0
+                        pin_states[bank][pin_idx] = state_new
+                        if pin is not None:
+                            pin.state_change(time.time(), state_new)
+                else:
+                    pin_debounce[bank][pin_idx] = 0
                 gpio_tick(pin_clock)
 
         # Get the most recent pedal board state
